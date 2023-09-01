@@ -15,13 +15,11 @@ int main(int argc, char** argv) {
 
     Scanner scanner(stream.str().c_str());
 
-    Token* prev = nullptr;
-    Token* tk = scanner.nextToken(prev);
+    Token* tk = scanner.nextToken();
     while (tk->type != END) {
         std::cout << *tk << std::endl;
-        prev = tk;
-        tk = scanner.nextToken(tk);
-        delete prev;
+        delete tk;
+        tk = scanner.nextToken();
     }
     std::cout << *tk << std::endl;
 

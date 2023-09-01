@@ -35,16 +35,19 @@ private:
     std::string getLexeme(){
         std::string result = input.substr(first, current - first);
         size_t n = result.size();
-        return (result[n - 1] == '\n')? result.substr(0, n - 1) : result;
+
+        if (result[n - 1] == '\n') {
+            result = result.substr(0, n - 1);
+            current--;
+        }
+
+        return result;
     }
 
-    static Token* verifyKeywords(const std::string& lexeme, Token* prev) {
+    static Token* verifyKeywords(const std::string& lexeme) {
         auto it = hashtable.find(lexeme);
         if (it != hashtable.end()) {
             return new Token(it->second);
-        }
-        else if ((prev != nullptr) && (prev->type == GOTO)) {
-            return new Token(LABEL, lexeme);
         }
         return new Token(ID, lexeme);
     }
@@ -55,7 +58,7 @@ public:
         input = buffer;
     }
 
-    Token* nextToken(Token* prev){
+    Token* nextToken(){
         char c = nextChar();
         while (c == ' ' || c == '\t') {
             c = nextChar();
@@ -82,7 +85,7 @@ public:
                     else if (c == '\0') return new Token(END);
                     else {
                         rollBack();
-                        return verifyKeywords(getLexeme(), prev);
+                        return verifyKeywords(getLexeme());
                     }
                     break;
                 }
@@ -105,13 +108,10 @@ public:
                     if (c == '\n') {
                         state = 6;
                     }
-
-                    else if (c == '\0') return new Token(END);
                     else {
                         rollBack();
                         return new Token(EOL);
                     }
-                    break;
                 }
             }
         }
