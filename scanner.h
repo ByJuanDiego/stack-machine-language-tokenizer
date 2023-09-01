@@ -1,5 +1,5 @@
 //
-// Created by juandiego on 9/1/23.
+// Created by juan diego on 9/1/23.
 //
 
 #ifndef LAB01_SCANNER_H
@@ -12,10 +12,17 @@ class Scanner {
 
     enum State {
         initial_state,
+
         get_al_num,
         get_num,
         get_new_line,
-        get_label
+
+        tokenize_label,
+        tokenize_num,
+        tokenize_id,
+        tokenize_eol,
+        tokenize_eof,
+        tokenize_err
     };
 
 private:
@@ -63,10 +70,11 @@ private:
 
 public:
 
-    explicit Scanner(const char* buffer): first(0), current(0), state(){
+    explicit Scanner(const char* buffer): first(0), current(0), state(initial_state){
         input = buffer;
     }
 
+    // Action - Read - Transition
     Token* nextToken(){
         char c = nextChar();
         while (c == ' ' || c == '\t') {
@@ -78,50 +86,63 @@ public:
 
         while (true) {
             switch (state) {
+
                 case initial_state: {
                     if (isalpha(c)) state = get_al_num;
                     else if (isdigit(c)) state = get_num;
                     else if (c == '\n') state = get_new_line;
-                    else if (c == '\0') return new Token(END);
-                    else return new Token(ERR);
+                    else if (c == '\0') state = tokenize_eof;
+                    else state = tokenize_err;
                     break;
                 }
+
+                // Readers
                 case get_al_num: {
                     c = nextChar();
-
-                    if (c == ':') state = get_label;
+                    if (c == ':') state = tokenize_label;
                     else if (isalnum(c) || c == '_') state = get_al_num;
-                    else if (c == '\0') return new Token(END);
+                    else if (c == '\0') state = tokenize_eof;
                     else {
                         rollBack();
-                        return verifyKeywords(getLexeme());
+                        state = tokenize_id;
                     }
                     break;
                 }
-                case get_label: {
-                    std::string label = getLexeme();
-                    return new Token(LABEL, label.substr(0, label.size() - 1));
-                }
                 case get_num: {
                     c = nextChar();
-
                     if (isdigit(c)) state = get_num;
                     else {
                         rollBack();
-                        return new Token(NUM, getLexeme());
+                        state = tokenize_num;
                     }
                     break;
                 }
                 case get_new_line: {
                     c = nextChar();
-                    if (c == '\n') {
-                        state = get_new_line;
-                    }
+                    if (c == '\n') state = get_new_line;
                     else {
                         rollBack();
-                        return new Token(EOL);
+                        state = tokenize_eol;
                     }
+                    break;
                 }
+
+                // Tokenizers
+                case tokenize_label: {
+                    std::string label = getLexeme();
+                    size_t n = label.size();
+                    return new Token(LABEL, label.substr(0, n - 1));
+                }
+
+                case tokenize_eof: return new Token(END);
+
+                case tokenize_err: return new Token(ERR);
+
+                case tokenize_eol: return new Token(EOL);
+
+                case tokenize_num: return new Token(NUM, getLexeme());
+
+                case tokenize_id: return verifyKeywords(getLexeme());
             }
         }
     }
