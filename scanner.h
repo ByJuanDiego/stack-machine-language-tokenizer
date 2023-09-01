@@ -9,10 +9,19 @@
 
 
 class Scanner {
+
+    enum State {
+        initial_state,
+        get_al_num,
+        get_num,
+        get_new_line,
+        get_label
+    };
+
 private:
     std::string input;
     int first, current;
-    int state;
+    State state;
 
     char nextChar(){
         char c = input[current];
@@ -65,23 +74,23 @@ public:
             incrementStartLexeme();
         }
         startLexeme();
-        state = 0;
+        state = initial_state;
 
         while (true) {
             switch (state) {
-                case 0: {
-                    if (isalpha(c)) state = 1;
-                    else if (isdigit(c)) state = 4;
-                    else if (c == '\n') state = 6;
+                case initial_state: {
+                    if (isalpha(c)) state = get_al_num;
+                    else if (isdigit(c)) state = get_num;
+                    else if (c == '\n') state = get_new_line;
                     else if (c == '\0') return new Token(END);
                     else return new Token(ERR);
                     break;
                 }
-                case 1: {
+                case get_al_num: {
                     c = nextChar();
 
-                    if (c == ':') state = 3;
-                    else if (isalnum(c) || c == '_') state = 1;
+                    if (c == ':') state = get_label;
+                    else if (isalnum(c) || c == '_') state = get_al_num;
                     else if (c == '\0') return new Token(END);
                     else {
                         rollBack();
@@ -89,24 +98,24 @@ public:
                     }
                     break;
                 }
-                case 3: {
+                case get_label: {
                     std::string label = getLexeme();
                     return new Token(LABEL, label.substr(0, label.size() - 1));
                 }
-                case 4: {
+                case get_num: {
                     c = nextChar();
 
-                    if (isdigit(c)) state = 4;
+                    if (isdigit(c)) state = get_num;
                     else {
                         rollBack();
                         return new Token(NUM, getLexeme());
                     }
                     break;
                 }
-                case 6: {
+                case get_new_line: {
                     c = nextChar();
                     if (c == '\n') {
-                        state = 6;
+                        state = get_new_line;
                     }
                     else {
                         rollBack();
