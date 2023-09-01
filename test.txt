@@ -1,3 +1,0 @@
-PUSH 3
-PUSH 5
-ADD

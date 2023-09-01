@@ -15,6 +15,7 @@ enum Type {
     EOL,
     ERR,
     END,
+    LABEL,
     JMP_EQ,
     JMP_GT,
     JMP_GE,
@@ -30,7 +31,8 @@ enum Type {
     MUL,
     DIV,
     STORE,
-    LOAD
+    LOAD,
+    PUSH
 };
 
 std::vector<std::string> token_names = {
@@ -39,6 +41,7 @@ std::vector<std::string> token_names = {
         "EOL",
         "ERR",
         "END",
+        "LABEL",
         "JMP_EQ",
         "JMP_GT",
         "JMP_GE",
@@ -54,7 +57,8 @@ std::vector<std::string> token_names = {
         "MUL",
         "DIV",
         "STORE",
-        "LOAD"
+        "LOAD",
+        "PUSH"
 };
 
 std::unordered_map<std::string, Type> hashtable {
@@ -74,6 +78,7 @@ std::unordered_map<std::string, Type> hashtable {
     {"div", DIV},
     {"store", STORE},
     {"load", LOAD},
+    {"push", PUSH}
 };
 
 class Token {
@@ -97,7 +102,7 @@ public:
 std::ostream& operator<<(std::ostream& os, const Token& token) {
     os << token_names[token.type];
     if (!token.lexeme.empty()) {
-        os << token.lexeme;
+        os << "(" << token.lexeme << ")";
     }
     return os;
 }
