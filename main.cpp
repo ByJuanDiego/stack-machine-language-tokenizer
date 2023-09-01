@@ -4,6 +4,13 @@
 #include "scanner.h"
 
 
+/*
+ * Authors:
+ *
+ * Juan Diego Prochazka
+ * Juan Diego Castro
+ */
+
 int main(int argc, char** argv) {
     if (argc < 2) {
         return EXIT_FAILURE;
